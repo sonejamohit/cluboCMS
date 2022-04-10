@@ -22,6 +22,26 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const addMember=(member)=>{
+  const promise=new Promise((resolve,reject)=>{
+    var datastring=`firstName=${encodeURIComponent(member.firstName)}&lastName=${encodeURIComponent(member.lastName)} &Email=${encodeURIComponent(member.Email)} &password=${encodeURIComponent(member.password)}`;
+   alert(datastring)
+    fetch('/createMember',{
+      "method":"POST",
+"headers":{
+"Content-Type":"application/x-www-form-urlencoded"
+},
+"body":datastring
+    }).then((response)=>{
+      alert(response.ok)
+      if(!response.ok) throw Error ("unable to connect database")
+      return(response.json())
+    }).then((member)=>{resolve(member)}).catch((error)=>{
+      reject(error.message)
+    })
+  });
+  return promise;
+  }
 const Form = ({ handleClose }) => {
 const navigate=useNavigate();
   const classes = useStyles();
@@ -36,6 +56,14 @@ const navigate=useNavigate();
   const handleSubmit = e => {
     e.preventDefault();
     console.log(firstName, lastName, email, password);
+    var member={
+      "firstName":firstName,
+      "lastName":lastName,
+      "Email":email,
+      "password":password
+    }
+    alert(member)
+    addMember(member).then((resolve)=>{console.log("ok")},(reject)=>{console.log("error")})
     handleClose();
    navigate('/')
   };

@@ -1,7 +1,5 @@
 
 import React from 'react';
-
-
 import Dialog from '@material-ui/core/Dialog';
 import FormSignIn from './form';
 import { Button } from '@material-ui/core';
@@ -27,7 +25,8 @@ const useStyles = makeStyles(theme => ({
     },
   }));
 
-const ModalDialog = ({ open, handleClose }) => {
+const ModalDialog = ({ open, handleClose}) => {
+  // const [accessId,setAcessId]=React.useState(true);
     const [title,setTitle]=React.useState("Login Here")
     const [viewMode,setViewMode]=React.useState("member");
  const clickHandle=(ev)=>{
@@ -65,7 +64,7 @@ const LoginAsMember=({handleClose,createForm})=>{
     const navigate = useNavigate();
     const handleSubmit = e => {
         e.preventDefault();
-   
+        
         handleClose();
         navigate("/") 
       };

@@ -7,9 +7,6 @@ import About from './pages/about';
 import Login from './pages/login';
 import Contact from './pages/contact';
 const App = () => {
-
-  
-
   return (
     <div>
     <Router>
@@ -19,7 +16,6 @@ const App = () => {
         <Route  path="/about"  element={<About/>} />
         <Route  path="/login"  element={<Login/>} />
         <Route exact path="/contact"  element={<Contact/>} />
-
       </Routes>
     </Router>
      </div>
