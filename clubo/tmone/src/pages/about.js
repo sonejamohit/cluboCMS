@@ -3,7 +3,7 @@ import dateFormat from "dateformat";
 import React from 'react';  
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit,  faTrash} from '@fortawesome/free-solid-svg-icons';
 const getEvent=()=>{
   const promise=new Promise((resolve,reject)=>{
@@ -17,6 +17,7 @@ return response.json();
   return promise;
 }
 const deleteEventByID=(id)=>{
+  
   const datastring=`EventId=${encodeURIComponent(id)}`;
   const promise=new Promise((resolve,reject)=>{
   fetch("/deleteEvent",{
@@ -33,9 +34,9 @@ resolve(deleteEvent)
   }).catch((error)=>{
     reject(error.message)
   })
-   return promise;
+   
   });
- 
+  return promise;
   }
 const About = () => {
   const [clickDate, setClickDate] = React.useState("");
@@ -70,7 +71,8 @@ const About = () => {
       // viewMode("process")
       console.log(error);
     })
-  }, [])
+  }
+  , [])
   
  function onChange(calDate){
 setClickDate(calDate);
@@ -116,7 +118,6 @@ const calenderStyle = {
   padding: "10px",
   fontFamily: "Arial",
 marging:"50px",
-  
 };
 const styleShowOnTime=  {
   color: "white",
@@ -133,13 +134,39 @@ const styleShowOnTime=  {
 const deleteingEvent=(id)=>{
   setViewMode("process");
 deleteEventByID(id).then((resolve)=>{
+setViewMode("showAllEvent");
   console.log(resolve.success);
-}).then((reject)=>{
+},(reject)=>{
   alert("Event not delete ,due to some Error")
 })
+
+
+getEvent().then((events)=>{
+  setViewMode("showAllEvent")
+  events.forEach((event)=>{
+    //convert into string and data format
+    event.eventDate=dateFormat(event.eventDate, "dd/mm/yyyy");
+    // alert(event.eventDate)
+    //Convert Time to am/pm
+      var timeString=event.eventTime;
+    const timeString12hr = new Date('1970-01-01T' + timeString + 'Z')
+    .toLocaleTimeString('en-US',
+      {timeZone:'UTC',hour12:true,hour:'numeric',minute:'numeric'}
+    );
+    event.eventTime=timeString12hr;
+  })
+  setEvents(events);
+  clickEvents()
+},(error)=>{
+  // viewMode("process")
+  console.log(error);
+})
+
+
+
 setViewMode("showAllEvent");
 }
-  return (    
+  return (   
       <div >
        <div className={calenderStyle} >
        <Calendar onChange={onChange} value={clickDate} tileContent={tileContent} 
@@ -165,9 +192,7 @@ const Processing=()=>{
   )
 }
 const ShowEventOntime=({events,clickDate})=>{
-
   // const [eventDate,setEventDate]=React.useState(new Date());
-
  if(events.length!=0) return(
     <div>
     <h2>Event for this date -{events.eventDate}</h2>

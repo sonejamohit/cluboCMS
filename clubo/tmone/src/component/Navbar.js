@@ -16,15 +16,16 @@ const useStyles = makeStyles((theme) => ({
  logo: {
     flexGrow: "1",
     cursor: "pointer",
+    color:"#e62c2c",
   },
   link: {
     textDecoration: "none",
-    color: "white",
+    color: "White",
     fontSize: "20px",
     marginLeft: theme.spacing(15),
     "&:hover": {
-      color: "yellow",
-      borderBottom: "1px solid white",
+      color: "#d9a871",
+      borderBottom: "1px solid black",
     },
   },
 }));
@@ -33,7 +34,7 @@ function Navbar() {
   const classes = useStyles();
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" style={{"background-color":"#dbadad"}}>
       <CssBaseline />
       <Toolbar>
         <Typography variant="h4" className={classes.logo}>
@@ -44,7 +45,7 @@ function Navbar() {
               Home
             </Link>
             <Link to="/about" className={classes.link}>
-              About
+              Events
             </Link>
             <Link to="/contact" className={classes.link}>
               Contact

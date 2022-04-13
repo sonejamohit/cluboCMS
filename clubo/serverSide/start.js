@@ -78,12 +78,13 @@ response.send(resultSet);
 
 app.get("/getEvent",async function(request,response){
   class Event{
-  constructor( eventId,eventName,eventDate,eventTime,mgr_id){
+  constructor( eventId,eventName,eventDate,eventTime,mgr_id,eventDescription){
   this.eventId=eventId;
   this.eventName=eventName;
   this.eventDate=eventDate;
   this.eventTime=eventTime;
   this.mgr_id=mgr_id;
+  this.eventDescription=eventDescription;
   }
   }
   const connection=await mariadb.createConnection({
@@ -96,7 +97,7 @@ app.get("/getEvent",async function(request,response){
   var events=[];
   var resultSet=await connection.query(`select * from event;`);
   var i=0,event;
-  var eventName,eventDate,eventTime,mgr_id;
+  var eventName,eventDate,eventTime,mgr_id,eventDescription;
   var eventId;
   while(i<resultSet.length){
   eventId=resultSet[i].eventId;
@@ -104,10 +105,11 @@ app.get("/getEvent",async function(request,response){
   eventDate=resultSet[i].eventDate;
   eventTime=resultSet[i].eventTime;
   mgr_id=resultSet[i].mgr_Id;
+  eventDescription=resultSet[i].description;
   console.log(typeof(eventName))
   console.log(typeof(eventDate))
 console.log(mgr_id);
-  event= new Event(eventId,eventName,eventDate,eventTime,mgr_id);
+  event= new Event(eventId,eventName,eventDate,eventTime,mgr_id,eventDescription);
   console.log(event)
  events.push(event);
   i++;
@@ -115,8 +117,9 @@ console.log(mgr_id);
   await connection.end();
   response.send(events);
   })
-  app.use(express.json())
+  // app.use(express.json())
   app.post('/deleteEvent',urlEncodedBodyParser,async function(request,response){
+   
     const connection=await mariadb.createConnection({
       "user":"root",
       "password":"12345678",
@@ -124,9 +127,9 @@ console.log(mgr_id);
       "host":"localhost",
       "port":5506
       })
-      var eventId=request.body.id;
-      console.log(request.body.name)
-      console.log(request.body)
+      var eventId=request.body.EventId;
+console.log("Pleasse hoja")
+      console.log("body"+request.body.EventId)
       console.log(eventId)
       var beforeDelete=connection.query(`select * from event;`);
   var resultSet=await connection.query(`delete from event where eventId="${eventId}";`);
@@ -139,6 +142,34 @@ console.log(mgr_id);
   await connection.end();
   response.send({"success":true});
   });
+
+
+  app.post('/editEvent',urlEncodedBodyParser,async function(request,response){
+   
+    const connection=await mariadb.createConnection({
+      "user":"root",
+      "password":"12345678",
+      "database":"clubo",
+      "host":"localhost",
+      "port":5506
+      })
+      var eventId=request.body.eventId;
+      var eventName=request.body.eventName;
+      var eventDate=request.body.eventDate;
+      var eventTime=request.body.eventTime;
+      var eventMgrId=request.body.mgrId;
+      var description=request.body.description;
+  var resultSet=await connection.query(`update event set eventName='${eventName}',eventDate='${eventDate}',eventTime='${eventTime}',mgr_Id='${eventMgrId}',description='${description}' where eventId="${eventId}";`);
+  if(resultSet.affectedRows===0)
+  {
+    await connection.end();
+    response.send({"error":"failure we can't edit"})
+  }
+  await connection.end();
+  response.send({"success":true});
+  });
+
+
 
 app.listen(port,function(error){
 if(error) return console.log("Something is wrong...."+error)
