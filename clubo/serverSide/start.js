@@ -95,7 +95,7 @@ app.get("/getEvent",async function(request,response){
   "port":5506
   })
   var events=[];
-  var resultSet=await connection.query(`select * from event;`);
+  var resultSet=await connection.query(` select * from event order by eventDate;`);
   var i=0,event;
   var eventName,eventDate,eventTime,mgr_id,eventDescription;
   var eventId;
@@ -169,7 +169,34 @@ console.log("Pleasse hoja")
   response.send({"success":true});
   });
 
-
+  app.post('/addNewEvent',urlEncodedBodyParser,async function(request,response){
+   
+    const connection=await mariadb.createConnection({
+      "user":"root",
+      "password":"12345678",
+      "database":"clubo",
+      "host":"localhost",
+      "port":5506
+      })
+      var eventId=request.body.eventId;
+      var eventName=request.body.eventName;
+      var eventDate=request.body.eventDate;
+      var eventTime=request.body.eventTime;
+      var eventMgrId=request.body.mgrId;
+      var description=request.body.description;
+console.log(description)
+      var beforeAdding =await connection.query(`select * from event;`);
+  var resultSet=await connection.query(`insert into event values("${eventId}",'${eventName}','${eventDate}','${eventTime}','${eventMgrId}','${description}');`);
+  var afterAdding=connection.query(`select * from event;`);
+  
+  if(beforeAdding.length===afterAdding.length)
+  {
+    await connection.end();
+    response.send({"error":"failure we can't edit"})
+  }
+  await connection.end();
+  response.send({"success":true});
+  });
 
 app.listen(port,function(error){
 if(error) return console.log("Something is wrong...."+error)
