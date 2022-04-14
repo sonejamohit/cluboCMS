@@ -6,7 +6,8 @@ import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import 'react-calendar/dist/Calendar.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit,  faTrash} from '@fortawesome/free-solid-svg-icons';
+import { faEdit,  faTrash, faAdd, faSearch} from '@fortawesome/free-solid-svg-icons';
+import { red } from '@material-ui/core/colors';
 
 const getEvent=()=>{
   const promise=new Promise((resolve,reject)=>{
@@ -59,6 +60,55 @@ resolve(deleteEvent)
     });
     return promise;
   }
+  const saveNewEventOnServerSide=(event)=>{
+    var datastring=`eventId=${event.eventId}&eventName=${encodeURIComponent(event.eventName)}&eventDate=${encodeURIComponent(event.eventDate)}&eventTime=${encodeURIComponent(event.eventTime)}&mgrId=${encodeURIComponent(event.eventManagerId)}&description=${encodeURIComponent(event.eventDescription)}`
+    // alert(datastring)
+    const promise=new Promise((resolve,reject)=>{
+    fetch("/addNewEvent",{
+      "method":"POST",
+      "headers":{
+      "Content-Type":"application/x-www-form-urlencoded"
+      },
+      "body":datastring
+    }).then((response)=>{
+      if(!response.ok) throw Error("Unable to add New Event  Event");
+      return response.json()}).then((event)=>{resolve (event)}).catch((error)=>{
+      reject(error.message)
+    })
+    });
+    return promise;
+  }
+  function convertTo24HrsFormat(time) {
+    const slicedTime = time.split(/(PM|AM)/gm)[0];
+ 
+    let [hours, minutes] = slicedTime.split(':');
+ 
+    if (hours === '12') {
+       hours = '00';
+    }
+ 
+    let updateHourAndMin;
+ 
+    function addition(hoursOrMin) {
+       updateHourAndMin =
+          hoursOrMin.length < 2
+             ? (hoursOrMin = `${0}${hoursOrMin}`)
+             : hoursOrMin;
+ 
+       return updateHourAndMin;
+    }
+ 
+    if (time.endsWith('PM')) {
+       hours = parseInt(hours, 10) + 12;
+    }
+ 
+    return `${addition(hours)}:${addition(minutes)}`;
+ }
+ function convertDate(date){
+  const input = date
+  const [day, month, year] =  input.split('/');
+  return (`${year}/${month}/${day}`);
+ }
 const Event = () => {
   const [clickDate, setClickDate] = React.useState("");
  const [clickChangeDate,setClickChangeDate]=React.useState("");
@@ -196,6 +246,25 @@ gettingEventWhenChange();
 const a={
   backgroundColor:"#704340"
 }
+const addNewEvent=(ev)=>{
+  setViewMode("addNewEvent");
+}
+const cancelAddEvent=(ev)=>{
+  setViewMode("showAllEvent")
+}
+const saveNewEvent=(newEvent)=>{
+  setViewMode("process");
+  saveNewEventOnServerSide(newEvent).then((newEventAdded)=>{
+    events=newEventAdded;
+  }).then((error)=>{
+    alert("sorry we Can't added,please try again")
+  })
+  gettingEventWhenChange();
+  setViewMode("showAllEvent")
+}
+const serachEvent=(value)=>{
+  
+}
   return (   
       <div style={a}>
        <div style={calenderStyle} >
@@ -208,7 +277,8 @@ const a={
      <ShowEventOntime  events={onChangeSelectedEvent} clickDate={clickDate}  />
      </div>
       {viewMode==="process" && <Processing />}
-     {viewMode==="showAllEvent" && <ShowAllEvent events={events} deleteingEvent={deleteingEvent} savingEditEvent={saveEditEvent}/>}
+     {viewMode==="showAllEvent" && <ShowAllEvent events={events} deleteingEvent={deleteingEvent} savingEditEvent={saveEditEvent} addNewEvent={addNewEvent} serachEvent={serachEvent}/>}
+     {viewMode==="addNewEvent" && <AddNewEvent events={events} cancelAddEvent={cancelAddEvent} saveNewEvent={saveNewEvent}/>}
       </div>
   
   );
@@ -251,7 +321,7 @@ const iconStyle={
   cursor:"pointer"
 }
 
-const ShowAllEvent=({events,deleteingEvent,savingEditEvent})=>{
+const ShowAllEvent=({events,deleteingEvent,savingEditEvent,addNewEvent,serachEvent})=>{
  const [changeEvent,setChangeEvent]=React.useState(false);
   const [entryAdmin,setEntryAdmin]=React.useState(true);
   const [eventName,setEventname]=React.useState("");
@@ -260,6 +330,7 @@ const ShowAllEvent=({events,deleteingEvent,savingEditEvent})=>{
   const [eventMgrId,setEventMenagerId]=React.useState("");
   const [editEventById,setEditEventById]=React.useState("")
   const [eventDescription,setEventDescription]=React.useState("");
+  const [addEvent,setAddEvent]=React.useState(false);
   const editEvent=(ev)=>{
 // alert("d")
 
@@ -287,38 +358,9 @@ setChangeEvent(false);
 }
 const saveEditEvent=(ev)=>{
 
-  function convertTo24HrsFormat(time) {
-    const slicedTime = time.split(/(PM|AM)/gm)[0];
- 
-    let [hours, minutes] = slicedTime.split(':');
- 
-    if (hours === '12') {
-       hours = '00';
-    }
- 
-    let updateHourAndMin;
- 
-    function addition(hoursOrMin) {
-       updateHourAndMin =
-          hoursOrMin.length < 2
-             ? (hoursOrMin = `${0}${hoursOrMin}`)
-             : hoursOrMin;
- 
-       return updateHourAndMin;
-    }
- 
-    if (time.endsWith('PM')) {
-       hours = parseInt(hours, 10) + 12;
-    }
- 
-    return `${addition(hours)}:${addition(minutes)}`;
- }
+  
 
- function convertDate(date){
-  const input = date
-  const [day, month, year] =  input.split('/');
-  return (`${year}/${month}/${day}`);
- }
+ 
   const event={
     "eventId":editEventById,
     "eventName":eventName,
@@ -327,7 +369,7 @@ const saveEditEvent=(ev)=>{
     "eventMgrId":eventMgrId,
     "eventDescription":eventDescription
   }
- 
+
 savingEditEvent(event);
 setChangeEvent(false);
 }
@@ -336,10 +378,29 @@ const EditFormStyle={
   padding:"2.5px",
   border:"1px solid #cf8372"
 }
+const addIconStyle={
+  position:"absolute",
+  right:"10px",
+  border:"1px solid black",
+  cursor:"pointer"
+}
+const addEventClickHandle=(ev)=>{
+addNewEvent(ev);
+}
+const SearchChangeEvent=(ev)=>{
+  serachEvent(ev.currentTarget.value)
+}
 
- if(!changeEvent) return(
+ if(!changeEvent && !addEvent) return(
     <div>
-    <h3>All Events</h3>
+    <h3>All Events{entryAdmin && <span style={addIconStyle}><FontAwesomeIcon onClick={addEventClickHandle} icon={faAdd }/> </span>}</h3>
+    <TextField 
+  
+          id="outlined-basic"
+          variant="outlined"
+          label="Search"
+          onChange={SearchChangeEvent}
+          />
    <ul>
   {
 events.map((event)=>{
@@ -352,6 +413,7 @@ events.map((event)=>{
    Event Time - {event.eventTime} <br></br>
    Event Manage Id -{event.mgr_id} <br></br>
    Description - {event.eventDescription}
+ 
     {entryAdmin && <span style={iconStyle}>
    <FontAwesomeIcon icon={faEdit} onClick={editEvent} id={event.eventId}/>&nbsp; 
      <FontAwesomeIcon icon={faTrash} onClick={deleteEvent} id={event.eventId}/>
@@ -368,11 +430,10 @@ events.map((event)=>{
 
     </div>
   )
-  if(changeEvent){
+  if(changeEvent && !addEvent){
     return(
       <div>
-       
-        <h3>All Event</h3>
+        <h3>All Event </h3>
         <ul>{
           events.map((event)=>{
             return( 
@@ -437,5 +498,106 @@ events.map((event)=>{
       </div>
     )
   }
+ 
+}
+const AddNewEvent=({cancelAddEvent,saveNewEvent,events})=>{
+  const [eventId,setEventId]=React.useState("");
+  const [eventName,setEventName]=React.useState("")
+  const [eventDate,setEventDate]=React.useState("");
+  const [eventTime,setEventTime]=React.useState("");
+  const [eventManagerId,setEventMenagerId]=React.useState("");
+  const [eventDescription,setEventDescription]=React.useState("");
+  const [title,setTitle]=React.useState("");
+ 
+const IdSameTitle={
+  color:"red",
+  "justify-content": "center",
+  padding:"5px",
+ margin:"5px",
+ "text-align": "center",
+"animation":{"effect":"blind","duration":"5000"}
+}
+
+  const cancelEvent=(ev)=>{
+cancelAddEvent(ev);
+  }
+  const saveEvent=()=>{
+    var i=0;
+    while(i<events.length)
+    {
+      if(events[i].eventId===eventId)
+      {
+        setTitle("*  Id already exits  *");
+        return;
+      }
+      i++;
+    }
+    const newEvent={
+      "eventId":eventId,
+      "eventName":eventName,
+      "eventDate":convertDate (eventDate),
+      "eventTime":convertTo24HrsFormat(eventTime),
+      "eventManagerId":eventManagerId,
+      "eventDescription":eventDescription
+    }
+    setTitle("")
+    saveNewEvent(newEvent);
+  }
+  return(
+    <div>
+      <h3>You can ADD new Event ,right now</h3>
+      <h5>Your Event ID Must Be Unique</h5>
+      <div>
+      <span style={IdSameTitle}><b>{title}</b></span><br></br>
+      <TextField 
+        label="Event Id"
+        variant="filled"
+        value={eventId}
+        onChange={e => setEventId(e.target.value)}
+      />&nbsp;&nbsp;&nbsp;&nbsp;
+   <TextField 
+        label="Event Name"
+        variant="filled"
+        value={eventName}
+        onChange={e => setEventName(e.target.value)}
+      />&nbsp;&nbsp;&nbsp;&nbsp;
+       <TextField 
+        label="Event Date"
+        variant="filled"
+        value={eventDate}
+        onChange={e => setEventDate(e.target.value)}
+      />&nbsp;&nbsp;&nbsp;&nbsp;
+       <TextField 
+        label="Event Time"
+        variant="filled"
+        value={eventTime}
+        onChange={e => setEventTime(e.target.value)}
+      />&nbsp;&nbsp;&nbsp;&nbsp;
+       <TextField 
+        label="Event Manager Id"
+        variant="filled"
+        value={eventManagerId}
+        onChange={e => setEventMenagerId(e.target.value)}
+      />&nbsp;&nbsp;&nbsp;&nbsp;
+       <TextField 
+        label="Description"
+        variant="filled"
+        fullWidth
+        value={eventDescription}
+        onChange={e => setEventDescription(e.target.value)}
+      />
+      <div>
+       <Button variant="contained" onClick={cancelEvent} style={{"margin":"8px"}}>
+          Cancel
+        </Button>
+        <Button type="Button" style={{"margin":"10px"}} variant="contained" color="primary" 
+         onClick={saveEvent} >
+          SAVE
+        </Button>
+      </div>
+   </div>
+
+    </div>
+  )
 }
 export default Event;
