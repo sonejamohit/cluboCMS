@@ -1,4 +1,5 @@
 import React from "react";
+// import style from './nav.css';
 import {
   AppBar,
   Toolbar,
@@ -7,7 +8,6 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import { Link } from "react-router-dom";
-
 const useStyles = makeStyles((theme) => ({
   navlinks: {
     marginLeft: theme.spacing(10),
@@ -16,25 +16,53 @@ const useStyles = makeStyles((theme) => ({
  logo: {
     flexGrow: "1",
     cursor: "pointer",
-    color:"#e62c2c",
+    color:"#e6cccc",
+  },
+  toolbar: {
+    margin: "10px",
+    padding: "8px",
   },
   link: {
     textDecoration: "none",
+    display: "flex",
     color: "White",
-    fontSize: "20px",
-    marginLeft: theme.spacing(15),
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "14px",
+    paddingLeft: "8px",
+    paddingRight: "8px",
+    marginLeft: theme.spacing(8),
     "&:hover": {
-      color: "#d9a871",
-      borderBottom: "1px solid black",
+      color: "#7b92cd",
+      background: "#fff",
+      // margin: "13px",
+      // border: "1px solid white",
+      // paddingright: "3px",
+      transition: "300ms",
+      // Radius:"5px",
     },
   },
+  login: {
+    textDecoration: "none",
+    display: "flex",
+    color: "White",
+    background: "#7b92cd",
+    borderRadius: "14px", 
+    fontSize: "14px",
+    padding: "8px",
+    marginLeft: theme.spacing(8),
+    "&:hover": {
+      color: "#000"
+    }
+  }
 }));
 
 function Navbar() {
   const classes = useStyles();
-
+  const [isOpen, setIsOpen] = React.useState(false);
+  const toggling = () => setIsOpen(!isOpen);
   return (
-    <AppBar position="static" style={{"background-color":"#dbadad"}}>
+    <AppBar position="static" style={{"background-color":"#3a3f6d"}}>
       <CssBaseline />
       <Toolbar>
         <Typography variant="h4" className={classes.logo}>
@@ -44,13 +72,13 @@ function Navbar() {
             <Link to="/" className={classes.link}>
               Home
             </Link>
-            <Link to="/about" className={classes.link}>
-              Events
+            <Link to="/event" className={classes.link}>
+            Events
             </Link>
             <Link to="/contact" className={classes.link}>
-              Contact
+              Members
             </Link>
-            <Link to="/login" className={classes.link}>
+            <Link to="/login" className={classes.login} >
               Login/SignUp
             </Link>
           </div>

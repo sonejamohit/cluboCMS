@@ -198,6 +198,38 @@ console.log(description)
   response.send({"success":true});
   });
 
+  app.post('/searchEvent',urlEncodedBodyParser,async function(request,response){
+   
+    const connection=await mariadb.createConnection({
+      "user":"root",
+      "password":"12345678",
+      "database":"clubo",
+      "host":"localhost",
+      "port":5506
+      })
+      var eventSearch=request.body.searchByCharacter;
+    console.log(eventSearch)
+  var resultSet=await connection.query(`select * from event where eventName like '${eventSearch}%';`);
+  await connection.end();
+  response.send(resultSet);
+  });
+
+  app.post('/getAllDetail',urlEncodedBodyParser,async function(request,response){
+   
+    const connection=await mariadb.createConnection({
+      "user":"root",
+      "password":"12345678",
+      "database":"clubo",
+      "host":"localhost",
+      "port":5506
+      })
+      var eventSearch=request.body.getId;
+    console.log(eventSearch)
+  var resultSet=await connection.query(`select memFname,memLname,contact,roleName,teamName from members m,team t,roles r where m.memRoleId=r.roleId and r.teamId=t.teamId where;`);
+  await connection.end();
+  response.send(resultSet);
+  });
+
 app.listen(port,function(error){
 if(error) return console.log("Something is wrong...."+error)
 return console.log("Server is starting on port "+port);

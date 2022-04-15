@@ -1,10 +1,9 @@
-import React  from "react";
+import React, { useState } from "react";
+ function Contact() {
+  return (
+   <div>
 
-const Contact=()=>{
-    return(
-    <div>
-<hi>Conatct pages</hi>
-</div>
-)
+   </div>
+  );
 }
 export default Contact;

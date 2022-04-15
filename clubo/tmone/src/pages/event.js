@@ -109,6 +109,43 @@ resolve(deleteEvent)
   const [day, month, year] =  input.split('/');
   return (`${year}/${month}/${day}`);
  }
+ const searchEventFromServerSide=(value)=>{
+   var datastring= `searchByCharacter=${value}`;
+  
+   const promise=new Promise((resolve,reject)=>{
+    fetch("/searchEvent",{
+      "method":"POST",
+      "headers":{
+      "Content-Type":"application/x-www-form-urlencoded"
+      },
+      "body":datastring
+    }).then((response)=>{
+      if(!response.ok) throw Error("Unable to aConnect  Event");
+      return response.json()}).then((events)=>{resolve (events)}).catch((error)=>{
+      reject(error.message)
+    })
+   })
+   return promise;
+ }
+ const getAllEventDetailFromServerSide=(id)=>{
+  var datastring= `getId=${id}`;
+  
+  const promise=new Promise((resolve,reject)=>{
+   fetch("/getAllDetail",{
+     "method":"POST",
+     "headers":{
+     "Content-Type":"application/x-www-form-urlencoded"
+     },
+     "body":datastring
+   }).then((response)=>{
+     if(!response.ok) throw Error("don't get a full detail Event");
+     return response.json()}).then((events)=>{resolve (events)}).catch((error)=>{
+     reject(error.message)
+   })
+  })
+  return promise;
+}
+ 
 const Event = () => {
   const [clickDate, setClickDate] = React.useState("");
  const [clickChangeDate,setClickChangeDate]=React.useState("");
@@ -262,9 +299,28 @@ const saveNewEvent=(newEvent)=>{
   gettingEventWhenChange();
   setViewMode("showAllEvent")
 }
-const serachEvent=(value)=>{
-  
+
+async function  serachEvent(value){
+  const eventsCome=[];
+
+await searchEventFromServerSide(value).then((eventsComeFromServer)=>{
+   var i=0;
+   while(i<eventsComeFromServer.length)
+{
+  eventsCome.push(eventsComeFromServer);
+   i++
+  }
+  },(error)=>{
+alert(error);
+  })
+
+  return eventsCome;
 }
+
+const getAllEventDetail=(id)=>{
+  getAllEventDetailFromServerSide(id)
+}
+
   return (   
       <div style={a}>
        <div style={calenderStyle} >
@@ -277,7 +333,7 @@ const serachEvent=(value)=>{
      <ShowEventOntime  events={onChangeSelectedEvent} clickDate={clickDate}  />
      </div>
       {viewMode==="process" && <Processing />}
-     {viewMode==="showAllEvent" && <ShowAllEvent events={events} deleteingEvent={deleteingEvent} savingEditEvent={saveEditEvent} addNewEvent={addNewEvent} serachEvent={serachEvent}/>}
+     {viewMode==="showAllEvent" && <ShowAllEvent events={events} deleteingEvent={deleteingEvent} savingEditEvent={saveEditEvent} addNewEvent={addNewEvent} serachEvent={serachEvent} getAllEventDetail={getAllEventDetail}/>}
      {viewMode==="addNewEvent" && <AddNewEvent events={events} cancelAddEvent={cancelAddEvent} saveNewEvent={saveNewEvent}/>}
       </div>
   
@@ -321,8 +377,9 @@ const iconStyle={
   cursor:"pointer"
 }
 
-const ShowAllEvent=({events,deleteingEvent,savingEditEvent,addNewEvent,serachEvent})=>{
+const ShowAllEvent=({events,deleteingEvent,savingEditEvent,addNewEvent,serachEvent,getAllEventDetail})=>{
  const [changeEvent,setChangeEvent]=React.useState(false);
+ 
   const [entryAdmin,setEntryAdmin]=React.useState(true);
   const [eventName,setEventname]=React.useState("");
   const [eventDate,setEventDate]=React.useState("");
@@ -331,9 +388,12 @@ const ShowAllEvent=({events,deleteingEvent,savingEditEvent,addNewEvent,serachEve
   const [editEventById,setEditEventById]=React.useState("")
   const [eventDescription,setEventDescription]=React.useState("");
   const [addEvent,setAddEvent]=React.useState(false);
-  const editEvent=(ev)=>{
-// alert("d")
+  const [knowMore,setKnowMore]=React.useState(false)
+  var eventSearch=[];
+  // const [eventSearch,setEventSearch]=React.useState([])
 
+  const editEvent=(ev)=>{
+// alert(changeEvent+""+addEvent+""+knowMore)
 setEditEventById(ev.currentTarget.id)
 setChangeEvent(true);
 // giveIninitalValue();
@@ -347,7 +407,9 @@ events.forEach((event)=>{
     setEventDescription(event.eventDescription);
   }
 })
+
   }
+ 
   const deleteEvent=(ev)=>{
     // alert(ev.currentTarget.id)
 deleteingEvent(ev.currentTarget.id)
@@ -357,10 +419,6 @@ const cancelEditEvent=(ev)=>{
 setChangeEvent(false);
 }
 const saveEditEvent=(ev)=>{
-
-  
-
- 
   const event={
     "eventId":editEventById,
     "eventName":eventName,
@@ -387,11 +445,38 @@ const addIconStyle={
 const addEventClickHandle=(ev)=>{
 addNewEvent(ev);
 }
-const SearchChangeEvent=(ev)=>{
-  serachEvent(ev.currentTarget.value)
+function clickKnowMore(ev){
+setKnowMore(true)
+setEditEventById(ev.currentTarget.id);
+getAllEventDetail(ev.currentTarget.id)
+}
+async function SearchChangeEvent(ev){
+  class Event{
+    constructor( eventId,eventName,eventDate,eventTime,mgr_id,eventDescription){
+    this.eventId=eventId;
+    this.eventName=eventName;
+    this.eventDate=eventDate;
+    this.eventTime=eventTime;
+    this.mgr_id=mgr_id;
+    this.eventDescription=eventDescription;
+    }
+    }
+    var event;
+   
+  serachEvent(ev.currentTarget.value).then((e)=>{
+ alert(JSON.stringify(e))
+var i=0;
+while(i<e.length){
+event=new Event(e[i].eventId,e[i].eventName,e[i].eventDate,e[i].eventTime,e[i].eventManagerId.e[i].eventDescription)
+eventSearch.push(event);
+i++;
+}
+  })
+  alert(eventSearch)
 }
 
- if(!changeEvent && !addEvent) return(
+ if(!changeEvent && !addEvent && !knowMore) return(
+  
     <div>
     <h3>All Events{entryAdmin && <span style={addIconStyle}><FontAwesomeIcon onClick={addEventClickHandle} icon={faAdd }/> </span>}</h3>
     <TextField 
@@ -401,6 +486,7 @@ const SearchChangeEvent=(ev)=>{
           label="Search"
           onChange={SearchChangeEvent}
           />
+    
    <ul>
   {
 events.map((event)=>{
@@ -413,7 +499,7 @@ events.map((event)=>{
    Event Time - {event.eventTime} <br></br>
    Event Manage Id -{event.mgr_id} <br></br>
    Description - {event.eventDescription}
- 
+   <button type="button" id={event.eventId} onClick={clickKnowMore}>Know more</button>
     {entryAdmin && <span style={iconStyle}>
    <FontAwesomeIcon icon={faEdit} onClick={editEvent} id={event.eventId}/>&nbsp; 
      <FontAwesomeIcon icon={faTrash} onClick={deleteEvent} id={event.eventId}/>
@@ -427,10 +513,9 @@ events.map((event)=>{
 )
   }
 </ul>
-
     </div>
   )
-  if(changeEvent && !addEvent){
+  if(changeEvent && !addEvent && !knowMore){
     return(
       <div>
         <h3>All Event </h3>
@@ -499,6 +584,48 @@ events.map((event)=>{
     )
   }
  
+
+
+  if(!changeEvent && !addEvent && knowMore){
+    // alert()
+
+
+    return(
+      <div>
+        <h3> Event </h3>
+        <ul>{
+          events.map((event)=>{
+            return( 
+    <div>
+    <hr/>
+     <li key={event.eventId}>{event.eventId}</li>
+     {editEventById===event.eventId &&
+   <div>
+   <h3>{event.eventName}</h3>
+   <span>{event.eventDate}</span>&nbsp;&nbsp;&nbsp;&nbsp;
+   <span>{event.eventTime}</span>  
+   </div>
+
+     }
+     {
+      editEventById!==event.eventId &&
+     <span> <h3>{event.eventName}</h3>
+    <span>{event.eventDate} ({event.eventTime})</span>
+    </span>
+     }
+    <hr/>
+    </div>
+    )
+          })
+        }</ul>
+       
+      </div>
+    )
+  }
+
+
+
+
 }
 const AddNewEvent=({cancelAddEvent,saveNewEvent,events})=>{
   const [eventId,setEventId]=React.useState("");
