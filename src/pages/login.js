@@ -1,8 +1,8 @@
 import React  from "react";
 import ModalDialog from './ModalDialog';
-import Button from '@material-ui/core/Button';
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import loginImage from './loginImage.jpg'
 import { useNavigate } from 'react-router-dom'
+
 const Login=()=>{
 const navigate=useNavigate();
     const [open, setOpen] = React.useState(true);
@@ -15,10 +15,11 @@ const navigate=useNavigate();
     setOpen(false);
     navigate('/')
   };
+  
     return(
-    <div>
-    <h1>LOgin </h1>
-    
+    <div >
+   
+    <img src={loginImage} />
 <ModalDialog open={open} handleClose={handleClose} acessId>
 </ModalDialog>
 </div>
