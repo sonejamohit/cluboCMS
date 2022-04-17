@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import { useNavigate } from 'react-router-dom';
+import Contact from './contact';
 const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
@@ -24,7 +25,7 @@ const useStyles = makeStyles(theme => ({
 
 const addMember=(member)=>{
   const promise=new Promise((resolve,reject)=>{
-    var datastring=`firstName=${encodeURIComponent(member.firstName)}&lastName=${encodeURIComponent(member.lastName)} &Email=${encodeURIComponent(member.Email)} &password=${encodeURIComponent(member.password)}`;
+    var datastring=`firstName=${encodeURIComponent(member.firstName)}&lastName=${encodeURIComponent(member.lastName)} &Email=${encodeURIComponent(member.Email)}&contact=${encodeURIComponent(member.contact)} &password=${encodeURIComponent(member.password)}`;
    alert(datastring)
     fetch('/createMember',{
       "method":"POST",
@@ -51,6 +52,7 @@ const navigate=useNavigate();
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [contact,setContact]=React.useState('');
 
 
   const handleSubmit = e => {
@@ -60,7 +62,8 @@ const navigate=useNavigate();
       "firstName":firstName,
       "lastName":lastName,
       "Email":email,
-      "password":password
+      "password":password,
+      "contact":contact
     }
     alert(member)
     addMember(member).then((resolve)=>{console.log("ok")},(reject)=>{console.log("error")})
@@ -88,6 +91,14 @@ if(currentValue==="members") setViewMode("member");
         required
         value={lastName}
         onChange={e => setLastName(e.target.value)}
+      />
+       <TextField
+        label="Mobile No"
+        variant="filled"
+        type="number"
+        required
+        value={contact}
+        onChange={e => setContact(e.target.value)}
       />
       <TextField
         label="Email"
