@@ -1,9 +1,9 @@
 import processingImage from './process.gif'
-import dateFormat, { masks } from "dateformat";
+import dateFormat from "dateformat";
 import React from 'react';  
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit,  faTrash} from '@fortawesome/free-solid-svg-icons';
 const getEvent=()=>{
   const promise=new Promise((resolve,reject)=>{
@@ -16,7 +16,28 @@ return response.json();
   });
   return promise;
 }
-
+const deleteEventByID=(id)=>{
+  
+  const datastring=`EventId=${encodeURIComponent(id)}`;
+  const promise=new Promise((resolve,reject)=>{
+  fetch("/deleteEvent",{
+    "method":"POST",
+"headers":{
+"Content-Type":"application/x-www-form-urlencoded"
+},
+"body":datastring
+  }).then((response)=>{
+if(!response.ok) throw Error ("Unable to delete this Event");
+    return response.json;
+  }).then((deleteEvent)=>{
+resolve(deleteEvent)
+  }).catch((error)=>{
+    reject(error.message)
+  })
+   
+  });
+  return promise;
+  }
 const About = () => {
   const [clickDate, setClickDate] = React.useState("");
  const [clickChangeDate,setClickChangeDate]=React.useState("");
@@ -50,7 +71,8 @@ const About = () => {
       // viewMode("process")
       console.log(error);
     })
-  },[])
+  }
+  , [])
   
  function onChange(calDate){
 setClickDate(calDate);
@@ -94,9 +116,8 @@ const calenderStyle = {
   width:"35%",
   backgroundColor: "DodgerBlue",
   padding: "10px",
-  fontFamily: "Arial"
-
-  
+  fontFamily: "Arial",
+marging:"50px",
 };
 const styleShowOnTime=  {
   color: "white",
@@ -110,7 +131,42 @@ const styleShowOnTime=  {
   fontFamily: "Arial",
 };
 
-  return (    
+const deleteingEvent=(id)=>{
+  setViewMode("process");
+deleteEventByID(id).then((resolve)=>{
+setViewMode("showAllEvent");
+  console.log(resolve.success);
+},(reject)=>{
+  alert("Event not delete ,due to some Error")
+})
+
+
+getEvent().then((events)=>{
+  setViewMode("showAllEvent")
+  events.forEach((event)=>{
+    //convert into string and data format
+    event.eventDate=dateFormat(event.eventDate, "dd/mm/yyyy");
+    // alert(event.eventDate)
+    //Convert Time to am/pm
+      var timeString=event.eventTime;
+    const timeString12hr = new Date('1970-01-01T' + timeString + 'Z')
+    .toLocaleTimeString('en-US',
+      {timeZone:'UTC',hour12:true,hour:'numeric',minute:'numeric'}
+    );
+    event.eventTime=timeString12hr;
+  })
+  setEvents(events);
+  clickEvents()
+},(error)=>{
+  // viewMode("process")
+  console.log(error);
+})
+
+
+
+setViewMode("showAllEvent");
+}
+  return (   
       <div >
        <div className={calenderStyle} >
        <Calendar onChange={onChange} value={clickDate} tileContent={tileContent} 
@@ -122,7 +178,7 @@ const styleShowOnTime=  {
      <ShowEventOntime  events={onChangeSelectedEvent} clickDate={clickDate}  />
      </div>
       {viewMode==="process" && <Processing />}
-     {viewMode==="showAllEvent" && <ShowAllEvent events={events}/>}
+     {viewMode==="showAllEvent" && <ShowAllEvent events={events} deleteingEvent={deleteingEvent}/>}
       </div>
   
   );
@@ -131,14 +187,12 @@ const styleShowOnTime=  {
 const Processing=()=>{
   return(
     <div>
-<img src={processingImage} height="25%" width="25%"/>
+<img src={processingImage} height="100%" width="100%"/>
     </div>
   )
 }
 const ShowEventOntime=({events,clickDate})=>{
-
   // const [eventDate,setEventDate]=React.useState(new Date());
-
  if(events.length!=0) return(
     <div>
     <h2>Event for this date -{events.eventDate}</h2>
@@ -160,22 +214,23 @@ if(events.length===0) return(
   </div>
 )
 }
-class Detials extends React.Component{
 
-  constructor(props){
-      super(props);
-      this.state={
-          value:this.props.ModalDialog.state,
-      }
 
-  }
-
-}
-
-const ShowAllEvent=({events})=>{
-  
-
+const ShowAllEvent=({events,deleteingEvent})=>{
+ 
   const [entryAdmin,setEntryAdmin]=React.useState(true);
+  const iconStyle={
+    position:"absolute",
+    right:"15px",
+    cursor:"pointer"
+  }
+  const editEvent=()=>{
+alert("d")
+  }
+  const deleteEvent=(ev)=>{
+    alert(ev.currentTarget.id)
+deleteingEvent(ev.currentTarget.id)
+  }
   return(
     <div>
     <h3>All Events</h3>
@@ -188,9 +243,9 @@ events.map((event)=>{
     <li key={event.eventId}>{event.eventId}</li>
     <h3>{event.eventName}</h3>
     <span>{event.eventDate} ({event.eventTime})</span>
-    {entryAdmin && <span>
-   <FontAwesomeIcon icon={faEdit}/>&nbsp;
-    <FontAwesomeIcon icon={faTrash} />
+    {entryAdmin && <span style={iconStyle}>
+   <FontAwesomeIcon icon={faEdit} onClick={editEvent} id={event.eventId}/>&nbsp; 
+     <FontAwesomeIcon icon={faTrash} onClick={deleteEvent} id={event.eventId}/>
    </span>}
     <hr/>
     </div>
