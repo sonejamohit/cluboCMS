@@ -8,6 +8,7 @@ body {
 }
 .highlight {
   color:red;
+  border-radius: 0px;
 }
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
